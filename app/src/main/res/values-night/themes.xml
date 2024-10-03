@@ -1,0 +1,7 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.KsuWebUI" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
+    </style>
+    <style name="Theme.KernelSU.WebUI" parent="Theme.KsuWebUI" />
+</resources>
