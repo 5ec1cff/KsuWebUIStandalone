@@ -1,5 +1,6 @@
 package io.github.a13e300.ksuwebui
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -15,13 +16,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.topjohnwu.superuser.Shell
-import com.topjohnwu.superuser.internal.MainShell
 import com.topjohnwu.superuser.ipc.RootService
 import com.topjohnwu.superuser.nio.FileSystemManager
 import io.github.a13e300.ksuwebui.databinding.ActivityMainBinding
 import io.github.a13e300.ksuwebui.databinding.ItemModuleBinding
 import kotlin.concurrent.thread
 
+@SuppressLint("NotifyDataSetChanged")
 class MainActivity : AppCompatActivity() {
     private var connection: ServiceConnection? = null
     private var rootFilesystem: FileSystemManager? = null
@@ -133,8 +134,8 @@ class MainActivity : AppCompatActivity() {
             val id = item.id
             val name = item.name
             holder.binding.name.text = name
-            holder.binding.author.text = "Author: ${item.author}"
-            holder.binding.version.text = "Version: ${item.version}"
+            holder.binding.author.text = resources.getString(R.string.author, item.author)
+            holder.binding.version.text = resources.getString(R.string.version, item.version)
             holder.binding.desc.text = item.desc
             holder.binding.root.setOnClickListener {
                 startActivity(
