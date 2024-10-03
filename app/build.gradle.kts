@@ -13,6 +13,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        setProperty("archivesBaseName", "KsuWebUI-$versionName-$versionCode")
     }
 
     buildTypes {
