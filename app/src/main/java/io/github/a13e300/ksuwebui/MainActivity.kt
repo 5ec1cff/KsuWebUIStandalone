@@ -177,7 +177,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
             }
-            Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
             runOnUiThread {
                 RootService.bind(Intent(this, FileSystemService::class.java), connection!!)
             }
