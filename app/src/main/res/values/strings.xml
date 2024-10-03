@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">KsuWebUI</string>
+    <string name="enable_webview_debugging">Debugging</string>
+    <string name="please_grant_root">Please grant root</string>
+    <string name="no_modules">No modules</string>
+    <string name="loading">Loading ...</string>
 </resources>

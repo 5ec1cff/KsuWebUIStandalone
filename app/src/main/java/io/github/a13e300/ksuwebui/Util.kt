@@ -16,23 +16,9 @@ inline fun <T> withNewRootShell(
 fun createRootShell(globalMnt: Boolean = false): Shell {
     Shell.enableVerboseLogging = BuildConfig.DEBUG
     val builder = Shell.Builder.create()
-    return try {
-        if (globalMnt) {
-            builder.build("su", "-g")
+    return if (globalMnt) {
+            builder.build("su", "-mm")
         } else {
             builder.build("su")
         }
-    } catch (e: Throwable) {
-        Log.w(TAG, "ksu failed: ", e)
-        try {
-            if (globalMnt) {
-                builder.build("su")
-            } else {
-                builder.build("su", "-mm")
-            }
-        } catch (e: Throwable) {
-            Log.e(TAG, "su failed: ", e)
-            builder.build("sh")
-        }
-    }
 }
