@@ -8,9 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import androidx.webkit.WebViewAssetLoader;
 
-import com.topjohnwu.superuser.Shell;
-import com.topjohnwu.superuser.io.SuFile;
-import com.topjohnwu.superuser.io.SuFileInputStream;
+import com.topjohnwu.superuser.nio.FileSystemManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,8 +35,8 @@ import java.util.zip.GZIPInputStream;
  *          .build();
  * </pre>
  */
-public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
-    private static final String TAG = "SuFilePathHandler";
+public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler {
+    private static final String TAG = "FsServicePathHandler";
 
     /**
      * Default value to be used as MIME type if guessing MIME type failed.
@@ -57,7 +55,7 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
     @NonNull
     private final File mDirectory;
 
-    private final Shell mShell;
+    private final FileSystemManager mFs;
 
     /**
      * Creates PathHandler for app's internal storage.
@@ -81,14 +79,14 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
      *                  which files can be loaded.
      * @throws IllegalArgumentException if the directory is not allowed.
      */
-    public SuFilePathHandler(@NonNull Context context, @NonNull File directory, Shell rootShell) {
+    public RemoteFsPathHandler(@NonNull Context context, @NonNull File directory, FileSystemManager fs) {
         try {
             mDirectory = new File(getCanonicalDirPath(directory));
             if (!isAllowedInternalStorageDir(context)) {
                 throw new IllegalArgumentException("The given directory \"" + directory
                         + "\" doesn't exist under an allowed app internal storage directory");
             }
-            mShell = rootShell;
+            mFs = fs;
         } catch (IOException e) {
             throw new IllegalArgumentException(
                     "Failed to resolve the canonical path for the given directory: "
@@ -133,7 +131,7 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
         try {
             File file = getCanonicalFileIfChild(mDirectory, path);
             if (file != null) {
-                InputStream is = openFile(file, mShell);
+                InputStream is = openFile(file, mFs);
                 String mimeType = guessMimeType(path);
                 return new WebResourceResponse(mimeType, null, is);
             } else {
@@ -169,11 +167,8 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
         return path.endsWith(".svgz") ? new GZIPInputStream(stream) : stream;
     }
 
-    public static InputStream openFile(@NonNull File file, @NonNull Shell shell) throws IOException {
-        SuFile suFile = new SuFile(file.getAbsolutePath());
-        suFile.setShell(shell);
-        InputStream fis = SuFileInputStream.open(suFile);
-        return handleSvgzStream(file.getPath(), fis);
+    public static InputStream openFile(@NonNull File file, @NonNull FileSystemManager fs) throws IOException {
+        return handleSvgzStream(file.getPath(), fs.getFile(file.getAbsolutePath()).newInputStream());
     }
 
     /**

@@ -1,13 +1,10 @@
 package io.github.a13e300.ksuwebui
 
 import android.annotation.SuppressLint
-import android.content.ComponentName
 import android.content.Intent
-import android.content.ServiceConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.ViewGroup
@@ -18,17 +15,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.RecyclerView
-import com.topjohnwu.superuser.Shell
-import com.topjohnwu.superuser.ipc.RootService
 import com.topjohnwu.superuser.nio.FileSystemManager
 import io.github.a13e300.ksuwebui.databinding.ActivityMainBinding
 import io.github.a13e300.ksuwebui.databinding.ItemModuleBinding
-import kotlin.concurrent.thread
 
 @SuppressLint("NotifyDataSetChanged")
-class MainActivity : AppCompatActivity() {
-    private var connection: ServiceConnection? = null
-    private var rootFilesystem: FileSystemManager? = null
+class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     private lateinit var binding: ActivityMainBinding
     private var moduleList = emptyList<Module>()
     private lateinit var adapter: Adapter
@@ -101,13 +93,11 @@ class MainActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
         binding.info.setText(R.string.loading)
         binding.info.isVisible = true
-        fetchModuleList()
+        FileSystemService.start(this)
     }
 
-    private fun fetchModuleList() {
-        thread {
-            if (!maybeStartRootService()) return@thread
-            val fs = rootFilesystem!!
+    override fun onServiceAvailable(fs: FileSystemManager) {
+        App.executor.submit {
             val mods = mutableListOf<Module>()
             val showDisabled = prefs.getBoolean("show_disabled", false)
             fs.getFile("/data/adb/modules").listFiles()!!.forEach { f ->
@@ -147,6 +137,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onLaunchFailed() {
+        moduleList = emptyList()
+        adapter.notifyDataSetChanged()
+        binding.info.setText(R.string.please_grant_root)
+        binding.info.isVisible = true
+        binding.swipeRefresh.isRefreshing = false
+    }
+
     data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String)
 
     class ViewHolder(val binding: ItemModuleBinding) : RecyclerView.ViewHolder(binding.root)
@@ -183,45 +181,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun maybeStartRootService(): Boolean {
-        if (connection == null) {
-            val isRoot = Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER).build().use {
-                it.isRoot
-            }
-
-            if (!isRoot) {
-                runOnUiThread {
-                    moduleList = emptyList()
-                    adapter.notifyDataSetChanged()
-                    binding.info.setText(R.string.please_grant_root)
-                    binding.info.isVisible = true
-                    binding.swipeRefresh.isRefreshing = false
-                }
-                return false
-            }
-
-            connection = object : ServiceConnection {
-                override fun onServiceConnected(p0: ComponentName, p1: IBinder) {
-                    rootFilesystem = FileSystemManager.getRemote(p1)
-                    fetchModuleList()
-                }
-
-                override fun onServiceDisconnected(p0: ComponentName) {
-                    rootFilesystem = null
-                    connection = null
-                }
-
-            }
-            runOnUiThread {
-                RootService.bind(Intent(this, FileSystemService::class.java), connection!!)
-            }
-            return false
-        }
-        return true
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        connection?.let { RootService.unbind(it) }
+        FileSystemService.removeListener(this)
     }
 }

@@ -9,20 +9,22 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.webkit.WebViewAssetLoader
-import com.topjohnwu.superuser.Shell
+import com.topjohnwu.superuser.nio.FileSystemManager
 import java.io.File
 
 @SuppressLint("SetJavaScriptEnabled")
-class WebUIActivity : ComponentActivity() {
+class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     private lateinit var webviewInterface: WebViewInterface
 
-    private var rootShell: Shell? = null
+    private lateinit var webView: WebView
+    private lateinit var moduleDir: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Enable edge to edge
@@ -33,8 +35,12 @@ class WebUIActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        val moduleId = intent.getStringExtra("id")!!
-        val name = intent.getStringExtra("name")!!
+        val moduleId = intent.getStringExtra("id")
+        if (moduleId == null) {
+            finish()
+            return
+        }
+        val name = intent.getStringExtra("name") ?: moduleId
         if (name.isNotEmpty()) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                 @Suppress("DEPRECATION")
@@ -48,27 +54,9 @@ class WebUIActivity : ComponentActivity() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         WebView.setWebContentsDebuggingEnabled(prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG))
 
-        val moduleDir = "/data/adb/modules/${moduleId}"
-        val webRoot = File("${moduleDir}/webroot")
-        val rootShell = createRootShell(true).also { this.rootShell = it }
-        val webViewAssetLoader = WebViewAssetLoader.Builder()
-            .setDomain("mui.kernelsu.org")
-            .addPathHandler(
-                "/",
-                SuFilePathHandler(this, webRoot, rootShell)
-            )
-            .build()
+        moduleDir = "/data/adb/modules/$moduleId"
 
-        val webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(
-                view: WebView,
-                request: WebResourceRequest
-            ): WebResourceResponse? {
-                return webViewAssetLoader.shouldInterceptRequest(request.url)
-            }
-        }
-
-        val webView = WebView(this).apply {
+        webView = WebView(this).apply {
             ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
                 val inset = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 view.updateLayoutParams<MarginLayoutParams> {
@@ -83,16 +71,51 @@ class WebUIActivity : ComponentActivity() {
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
             webviewInterface = WebViewInterface(this@WebUIActivity, this, moduleDir)
+        }
+
+        setContentView(webView)
+        FileSystemService.start(this)
+    }
+
+    private fun setupWebview(fs: FileSystemManager) {
+        val webRoot = File("$moduleDir/webroot")
+        val webViewAssetLoader = WebViewAssetLoader.Builder()
+            .setDomain("mui.kernelsu.org")
+            .addPathHandler(
+                "/",
+                RemoteFsPathHandler(
+                    this,
+                    webRoot,
+                    fs
+                )
+            )
+            .build()
+        val webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(
+                view: WebView,
+                request: WebResourceRequest
+            ): WebResourceResponse? {
+                return webViewAssetLoader.shouldInterceptRequest(request.url)
+            }
+        }
+        webView.apply {
             addJavascriptInterface(webviewInterface, "ksu")
             setWebViewClient(webViewClient)
             loadUrl("https://mui.kernelsu.org/index.html")
         }
+    }
 
-        setContentView(webView)
+    override fun onServiceAvailable(fs: FileSystemManager) {
+        setupWebview(fs)
+    }
+
+    override fun onLaunchFailed() {
+        Toast.makeText(this, R.string.please_grant_root, Toast.LENGTH_SHORT).show()
+        finish()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        runCatching { rootShell?.close() }
+        FileSystemService.removeListener(this)
     }
 }
