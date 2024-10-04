@@ -1,10 +1,6 @@
 package io.github.a13e300.ksuwebui
 
-import android.util.Log
 import com.topjohnwu.superuser.Shell
-
-
-private const val TAG = "KsuCli"
 
 inline fun <T> withNewRootShell(
     globalMnt: Boolean = false,
