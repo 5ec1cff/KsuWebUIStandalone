@@ -1,11 +1,32 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
 }
 
+val keystorePropertiesFile: File = rootProject.file("keystore.properties")
+val keystoreProperties = if (keystorePropertiesFile.exists() && keystorePropertiesFile.isFile) {
+    Properties().apply {
+        load(FileInputStream(keystorePropertiesFile))
+    }
+} else null
+
 android {
     namespace = "io.github.a13e300.ksuwebui"
     compileSdk = 35
+
+    signingConfigs {
+        if (keystoreProperties != null) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "io.github.a13e300.ksuwebui"
@@ -24,7 +45,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs["debug"]
+            val releaseSig = signingConfigs.findByName("release")
+            signingConfig = if (releaseSig != null) releaseSig else {
+                println("use debug signing config")
+                signingConfigs["debug"]
+            }
         }
     }
     compileOptions {
