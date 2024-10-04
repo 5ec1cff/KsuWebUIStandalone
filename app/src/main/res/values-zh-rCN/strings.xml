@@ -5,4 +5,5 @@
     <string name="loading">加载中 …</string>
     <string name="author">作者：%s</string>
     <string name="version">版本：%s</string>
+    <string name="show_disabled">显示禁用的模块</string>
 </resources>

@@ -49,14 +49,24 @@ class MainActivity : AppCompatActivity() {
         refresh()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
-        menu!!.findItem(R.id.enable_webview_debugging).apply {
+        menu.findItem(R.id.enable_webview_debugging).apply {
             isChecked = prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)
             setOnMenuItemClickListener {
                 val newValue = !it.isChecked
                 prefs.edit().putBoolean("enable_web_debugging", newValue).apply()
                 it.isChecked = newValue
+                true
+            }
+        }
+        menu.findItem(R.id.show_disabled).apply {
+            isChecked = prefs.getBoolean("show_disabled", false)
+            setOnMenuItemClickListener {
+                val newValue = !it.isChecked
+                prefs.edit().putBoolean("show_disabled", newValue).apply()
+                it.isChecked = newValue
+                refresh()
                 true
             }
         }
@@ -76,10 +86,11 @@ class MainActivity : AppCompatActivity() {
             if (!maybeStartRootService()) return@thread
             val fs = rootFilesystem!!
             val mods = mutableListOf<Module>()
+            val showDisabled = prefs.getBoolean("show_disabled", false)
             fs.getFile("/data/adb/modules").listFiles()!!.forEach { f ->
                 if (!f.isDirectory) return@forEach
                 if (!fs.getFile(f, "webroot").isDirectory) return@forEach
-                if (fs.getFile(f, "disable").exists()) return@forEach
+                if (fs.getFile(f, "disable").exists() && !showDisabled) return@forEach
                 var name = f.name
                 val id = f.name
                 var author = "?"

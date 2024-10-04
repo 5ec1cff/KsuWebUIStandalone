@@ -6,4 +6,9 @@
         android:id="@+id/enable_webview_debugging"
         android:title="@string/enable_webview_debugging"
         app:showAsAction="never" />
+    <item
+        android:checkable="true"
+        android:id="@+id/show_disabled"
+        android:title="@string/show_disabled"
+        app:showAsAction="never" />
 </menu>

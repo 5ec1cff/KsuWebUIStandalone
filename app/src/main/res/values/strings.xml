@@ -6,4 +6,5 @@
     <string name="loading">Loading …</string>
     <string name="author">Author: %s</string>
     <string name="version">Version: %s</string>
+    <string name="show_disabled">Show Disabled</string>
 </resources>
