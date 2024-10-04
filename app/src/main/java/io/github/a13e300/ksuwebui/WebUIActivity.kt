@@ -40,8 +40,7 @@ class WebUIActivity : ComponentActivity() {
                 @Suppress("DEPRECATION")
                 setTaskDescription(ActivityManager.TaskDescription(name))
             } else {
-                val taskDescription =
-                    ActivityManager.TaskDescription.Builder().setLabel(name).build()
+                val taskDescription = ActivityManager.TaskDescription.Builder().setLabel(name).build()
                 setTaskDescription(taskDescription)
             }
         }
