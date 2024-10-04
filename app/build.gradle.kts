@@ -38,6 +38,11 @@ android {
         buildConfig = true
         viewBinding = true
     }
+    packaging {
+        resources {
+            excludes += "**"
+        }
+    }
 }
 
 dependencies {
