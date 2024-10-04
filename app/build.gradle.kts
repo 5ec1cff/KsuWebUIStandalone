@@ -1,3 +1,4 @@
+import com.android.build.gradle.tasks.PackageAndroidArtifact
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.Properties
@@ -64,6 +65,14 @@ android {
                 signingConfigs["debug"]
             }
         }
+    }
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+    // https://stackoverflow.com/a/77745844
+    tasks.withType<PackageAndroidArtifact> {
+        doFirst { appMetadata.asFile.orNull?.writeText("") }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
