@@ -1,3 +1,4 @@
+import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -12,6 +13,18 @@ val keystoreProperties = if (keystorePropertiesFile.exists() && keystoreProperti
         load(FileInputStream(keystorePropertiesFile))
     }
 } else null
+
+fun String.execute(currentWorkingDir: File = file("./")): String {
+    val byteOut = ByteArrayOutputStream()
+    project.exec {
+        workingDir = currentWorkingDir
+        commandLine = split("\\s".toRegex())
+        standardOutput = byteOut
+    }
+    return String(byteOut.toByteArray()).trim()
+}
+
+val gitCommitCount = "git rev-list HEAD --count".execute().toInt()
 
 android {
     namespace = "io.github.a13e300.ksuwebui"
@@ -32,7 +45,7 @@ android {
         applicationId = "io.github.a13e300.ksuwebui"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
+        versionCode = gitCommitCount
         versionName = "1.0"
         setProperty("archivesBaseName", "KsuWebUI-$versionName-$versionCode")
     }
