@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import com.android.build.gradle.tasks.PackageAndroidArtifact
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
@@ -73,6 +75,9 @@ android {
     // https://stackoverflow.com/a/77745844
     tasks.withType<PackageAndroidArtifact> {
         doFirst { appMetadata.asFile.orNull?.writeText("") }
+    }
+    androidResources {
+        generateLocaleConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
