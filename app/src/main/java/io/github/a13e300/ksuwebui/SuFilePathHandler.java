@@ -189,4 +189,3 @@ public final class SuFilePathHandler implements WebViewAssetLoader.PathHandler {
         return mimeType == null ? DEFAULT_MIME_TYPE : mimeType;
     }
 }
-
