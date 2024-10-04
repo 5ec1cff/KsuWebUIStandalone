@@ -12,9 +12,8 @@ inline fun <T> withNewRootShell(
 fun createRootShell(globalMnt: Boolean = false): Shell {
     Shell.enableVerboseLogging = BuildConfig.DEBUG
     val builder = Shell.Builder.create()
-    return if (globalMnt) {
-            builder.build("su", "-mm")
-        } else {
-            builder.build("su")
-        }
+    if (globalMnt) {
+        builder.setFlags(Shell.FLAG_MOUNT_MASTER)
+    }
+    return builder.build()
 }
