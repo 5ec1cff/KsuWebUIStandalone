@@ -11,9 +11,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.KsuWebUI"
+        android:enableOnBackInvokedCallback="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:name=".App"
-        tools:targetApi="31" >
+        tools:targetApi="33" >
         <activity android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
