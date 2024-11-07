@@ -7,4 +7,8 @@
     <string name="author">Author: %s</string>
     <string name="version">Version: %s</string>
     <string name="show_disabled">Show Disabled</string>
+    <string name="execution_results">Execution Results</string>
+    <string name="executing">executing</string>
+    <string name="action_btn_text">Action</string>
+    <string name="open_btn_text">Open</string>
 </resources>

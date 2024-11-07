@@ -6,4 +6,8 @@
     <string name="author">作者：%s</string>
     <string name="version">版本：%s</string>
     <string name="show_disabled">显示禁用的模块</string>
+    <string name="execution_results">执行结果</string>
+    <string name="executing">执行中…</string>
+    <string name="action_btn_text">执行</string>
+    <string name="open_btn_text">打开</string>
 </resources>
