@@ -11,6 +11,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -74,6 +75,11 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
         }
 
         setContentView(webView)
+        onBackPressedDispatcher.addCallback {
+            if(webView.canGoBack())
+                webView.goBack()
+            else finish()
+        }
         FileSystemService.start(this)
     }
 
