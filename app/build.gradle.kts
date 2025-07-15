@@ -85,10 +85,8 @@ android {
     }
     kotlin {
         jvmToolchain {
-
-    languageVersion.set(JavaLanguageVersion.of(21))
+            languageVersion.set(JavaLanguageVersion.of(21))
         }
-
     }
     buildFeatures {
         buildConfig = true
